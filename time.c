@@ -234,6 +234,16 @@ static size_t timer_idx_get(timer_t timer_id, timer_t placeholder)
 	return i;
 }
 
+static timer_t assign_timer_id(size_t idx, timer_t new)
+{
+	timer_t old;
+	OSSpinLockLock(&timers_lock);
+	old = timers[idx];
+	timers[idx] = new;
+	OSSpinLockUnlock(&timers_lock);
+	return old;
+}
+
 static int remove_timer_id(timer_t timer_id)
 {
 	size_t idx;
@@ -322,6 +332,7 @@ int timer_create(clockid_t clock_id, struct sigevent *__restrict evp,
 	*dsp = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER,
 		0, 0, DISPATCH_TARGET_QUEUE_DEFAULT);
 	if (*dsp == NULL) {
+		(void)assign_timer_id(idx, 0);
 		errno = EAGAIN;
 		return -1;
 	}
@@ -335,7 +346,7 @@ int timer_create(clockid_t clock_id, struct sigevent *__restrict evp,
 	dispatch_set_context(*dsp, tcxt);
 	dispatch_set_finalizer_f(*dsp, free);
 	dispatch_source_set_event_handler_f(*dsp, timer_func);
-	timers[idx] = (timer_t)*dsp;
+	(void)assign_timer_id(idx, (timer_t)*dsp);
 	return 0;
 }
 int timer_delete(timer_t timer_id)
