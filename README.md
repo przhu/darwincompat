@@ -6,6 +6,10 @@ My Darwin compat library for some optional POSIX functions
 ###System Requirements
 * Darwin 11 (Mac OS X 10.7, others may work)
 
+###Features
+* time related facilities marked as POSIX optional
+* wrappers for `__BLOCKS__` unavailable compilers to use `XPCServices`
+
 ###Current State
 * totally UNTESTED
 * Currently some time related functions are implemented or just a wrapper. See file `time.h` for the detail.
